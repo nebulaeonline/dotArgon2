@@ -57,7 +57,7 @@ Coming soon as a NuGet package. For now, clone and build from source:
 
 ```bash
 
-git clone https://github.com/nebulaeonline/nebulae.dotArgon2.git
+git clone https://github.com/nebulaeonline/dotArgon2.git
 cd dotArgon2
 dotnet build
 
