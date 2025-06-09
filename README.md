@@ -105,4 +105,3 @@ MIT
 ## Roadmap
 
 - Secure memory clearing for sensitive hash buffers
-- Span<T> and Memory<T> overloads for zero-allocation scenarios
