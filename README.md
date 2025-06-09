@@ -41,14 +41,34 @@ using nebulae.dotArgon2;
 // Ensure native library is loaded
 Argon2.Init();
 
-// Hash a password using Argon2id
-byte[] rawHash = Argon2.Argon2idHashRaw(2, 65536, 2, passwordBytes, saltBytes, 32);
+// Set inputs
+byte[] password = Encoding.UTF8.GetBytes("correct horse battery staple");
+byte[] salt = Encoding.UTF8.GetBytes("sodiumchloride");
 
-// Get an encoded string instead
-string encoded = Argon2.Argon2idHashEncoded(2, 65536, 2, passwordBytes, saltBytes);
+// Choose the variant
+var algorithm = Argon2.Argon2Algorithm.Argon2id;
 
-// Verify
-bool isValid = Argon2.Argon2idVerify(encoded, passwordBytes);
+// Hash to a raw 32-byte buffer
+byte[] rawHash = Argon2.Argon2HashRaw(
+    algorithm,
+    timeCost: 2,
+    memCost: 65536,
+    parallelism: 2,
+    password,
+    salt,
+    hashLength: 32);
+
+// Get a base64-compatible encoded string
+string encoded = Argon2.Argon2HashEncodedToString(
+    algorithm,
+    timeCost: 2,
+    memCost: 65536,
+    parallelism: 2,
+    password,
+    salt);
+
+// Verify the encoded hash using the original password
+bool isValid = Argon2.VerifyEncoded(algorithm, encoded, password);
 
 ```
 
