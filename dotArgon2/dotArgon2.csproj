@@ -16,13 +16,16 @@
       <IncludeSymbols>false</IncludeSymbols>
       <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
       <Copyright>Copyright © 2025 Nebulae Foundation LLC </Copyright>
-      <PackageReadmeFile>README.md</PackageReadmeFile>
+      <PackageReadmeFile>docs\README.md</PackageReadmeFile>
     <Nullable>enable</Nullable>
     <RootNamespace>nebulae.dotArgon2</RootNamespace>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
     <ItemGroup>
+        <None Include="..\README.md" Pack="true" PackagePath="docs">
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        </None>
         <None Include="runtimes\**\native\*" Pack="true" PackagePath="runtimes\" CopyToOutputDirectory="PreserveNewest" />      
     </ItemGroup>
     
