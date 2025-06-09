@@ -4,6 +4,8 @@ A minimal, fast, cross-platform Argon2 wrapper for .NET applications.
 
 This library provides access to native **Argon2id**, **Argon2i**, and **Argon2d** password hashing using optimized AVX2-enabled builds of the official reference implementation.
 
+[![NuGet](https://img.shields.io/nuget/v/nebulae.dotArgon2.svg)](https://www.nuget.org/packages/nebulae.dotArgon2)
+
 ---
 
 ## Features
@@ -76,13 +78,21 @@ bool isValid = Argon2.VerifyEncoded(algorithm, encoded, password);
 
 ## Installation
 
-Coming soon as a NuGet package. For now, clone and build from source:
+You can install the package via NuGet:
 
 ```bash
 
-git clone https://github.com/nebulaeonline/dotArgon2.git
-cd dotArgon2
-dotnet build
+$ dotnet add package nebulae.dotArgon2
+
+```
+
+Or via git:
+
+```bash
+
+$ git clone https://github.com/nebulaeonline/dotArgon2.git
+$ cd dotArgon2
+$ dotnet build
 
 ```
 
