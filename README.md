@@ -1,6 +1,7 @@
 ﻿# nebulae.dotArgon2
 
-A minimal, fast, cross-platform Argon2 wrapper for .NET applications.  
+A minimal, fast, cross-platform Argon2 wrapper for .NET applications.
+
 This library provides access to native **Argon2id**, **Argon2i**, and **Argon2d** password hashing using optimized AVX2-enabled builds of the official reference implementation.
 
 ---
@@ -29,7 +30,9 @@ This library provides access to native **Argon2id**, **Argon2i**, and **Argon2d*
 
 ## Usage
 
-For general usage, it is recommended to use the encoded string output for password hashing. If you do so you can use the built-in verification functions. Otherwise, you must re-compute the hash using the same original settings and compare the raw hashes yourself.
+For general usage, it is recommended to use the encoded string output for password hashing. If you do so you can use the built-in verification functions. Otherwise, you must re-compute the hash using the same original settings and compare the raw hashes yourself. 
+
+*Important:* salts are required to be at least *8 bytes* in length; this is a requirement of the underlying Argon2 library.
 
 ```csharp
 
