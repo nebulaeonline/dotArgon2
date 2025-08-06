@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace nebulae.dotArgon2
 {
@@ -11,6 +12,16 @@ namespace nebulae.dotArgon2
             if (_isLoaded)
                 return;
 
+            NativeLibrary.SetDllImportResolver(typeof(Argon2Library).Assembly, Resolve);
+
+            _isLoaded = true;
+        }
+
+        private static IntPtr Resolve(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+        {
+            if (libraryName != "argon2")
+                return IntPtr.Zero;
+
             var libName = GetPlatformLibraryName();
             var assemblyDir = Path.GetDirectoryName(typeof(Argon2Library).Assembly.Location)!;
             var fullPath = Path.Combine(assemblyDir, libName);
@@ -18,8 +29,7 @@ namespace nebulae.dotArgon2
             if (!File.Exists(fullPath))
                 throw new DllNotFoundException($"Could not find native Argon2 library at {fullPath}");
 
-            NativeLibrary.Load(fullPath);
-            _isLoaded = true;
+            return NativeLibrary.Load(fullPath);
         }
 
         private static string GetPlatformLibraryName()
