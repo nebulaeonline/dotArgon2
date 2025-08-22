@@ -40,8 +40,8 @@ For general usage, it is recommended to use the encoded string output for passwo
 
 using nebulae.dotArgon2;
 
-// Ensure native library is loaded
-Argon2.Init();
+// Ensure native library is loaded (no longer necessary in recent versions)
+// Argon2.Init();
 
 // Set inputs
 byte[] password = Encoding.UTF8.GetBytes("correct horse battery staple");

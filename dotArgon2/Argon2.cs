@@ -8,6 +8,11 @@ namespace nebulae.dotArgon2
 {
     public static class Argon2
     {
+        static Argon2()
+        {
+            Argon2Library.Init();
+        }
+
         public enum Argon2Algorithm
         {
             /// <summary>

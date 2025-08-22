@@ -12,7 +12,7 @@ namespace dotArgon2Tests
         [InlineData(Argon2.Argon2Algorithm.Argon2d)]
         public void HashRaw_Generates_CorrectLength(Argon2.Argon2Algorithm algo)
         {
-            Argon2.Init();
+            //Argon2.Init();
 
             var password = Encoding.UTF8.GetBytes("password123");
             var salt = Encoding.UTF8.GetBytes("somesalt");
@@ -30,7 +30,7 @@ namespace dotArgon2Tests
         [InlineData(Argon2.Argon2Algorithm.Argon2d)]
         public void TryHashRawFast_Writes_ExpectedLength(Argon2.Argon2Algorithm algo)
         {
-            Argon2.Init();
+            //Argon2.Init();
 
             Span<byte> buffer = stackalloc byte[64];
             var password = Encoding.UTF8.GetBytes("securepass");
@@ -48,7 +48,7 @@ namespace dotArgon2Tests
         [InlineData(Argon2.Argon2Algorithm.Argon2d)]
         public void Parallelism_Affects_Hash_Output(Argon2.Argon2Algorithm algo)
         {
-            Argon2.Init();
+            //Argon2.Init();
 
             byte[] password = Encoding.UTF8.GetBytes("parallelism-test");
             byte[] salt = Encoding.UTF8.GetBytes("same-salt");
@@ -65,7 +65,7 @@ namespace dotArgon2Tests
         [InlineData(Argon2.Argon2Algorithm.Argon2d)]
         public void HashAndVerify_Encoded_Roundtrip(Argon2.Argon2Algorithm algo)
         {
-            Argon2.Init();
+            //Argon2.Init();
 
             byte[] password = Encoding.UTF8.GetBytes("correct-horse-battery-staple");
             byte[] salt = Encoding.UTF8.GetBytes("somesalt");
@@ -84,7 +84,7 @@ namespace dotArgon2Tests
         [InlineData(Argon2.Argon2Algorithm.Argon2d)]
         public void HashRawToHex_Produces_CorrectLengthAndFormat(Argon2.Argon2Algorithm algo)
         {
-            Argon2.Init();
+            //Argon2.Init();
 
             byte[] password = Encoding.UTF8.GetBytes("hexpass");
             byte[] salt = Encoding.UTF8.GetBytes("hexsaltsalt");
@@ -105,7 +105,7 @@ namespace dotArgon2Tests
         [InlineData(Argon2.Argon2Algorithm.Argon2d)]
         public void FastPath_EncodedHash_Roundtrip_Succeeds(Argon2.Argon2Algorithm algo)
         {
-            Argon2.Init();
+            //Argon2.Init();
 
             var password = Encoding.UTF8.GetBytes("fast-horse-battery-staple");
             var salt = Encoding.UTF8.GetBytes("reliablesalt");
@@ -134,7 +134,7 @@ namespace dotArgon2Tests
         [InlineData(Argon2.Argon2Algorithm.Argon2d)]
         public void VerifyEncoded_WithWrongPassword_ReturnsFalse(Argon2.Argon2Algorithm algo)
         {
-            Argon2.Init();
+            //Argon2.Init();
 
             var password = Encoding.UTF8.GetBytes("correct-password");
             var salt = Encoding.UTF8.GetBytes("samesalt99");
