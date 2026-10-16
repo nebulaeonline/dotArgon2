@@ -15,7 +15,7 @@
       <PackageProjectUrl>https://github.com/nebulaeonline/dotArgon2</PackageProjectUrl>
       <IncludeSymbols>false</IncludeSymbols>
       <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-      <Copyright>Copyright © 2025 Nebulae Foundation LLC </Copyright>
+      <Copyright>Copyright © 2025-2026 Nebulae Foundation LLC </Copyright>
       <PackageReadmeFile>docs\README.md</PackageReadmeFile>
     <Nullable>enable</Nullable>
     <RootNamespace>nebulae.dotArgon2</RootNamespace>
