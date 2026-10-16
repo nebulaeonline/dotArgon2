@@ -7,7 +7,7 @@
       <Version>0.7.12</Version>
       <Authors>Robert C. Horvath III</Authors>
       <Company>Nebulae Foundation LLC</Company>
-      <Description>High-performance Argon2 wrapper for .NET with native AVX2-optimized bindings.</Description>
+      <Description>High-performance Argon2 wrapper for .NET with native x64 AVX2 and ARM64 bindings.</Description>
       <PackageTags>argon2 password hashing crypto native AOT</PackageTags>
       <RepositoryUrl>https://github.com/nebulaeonline/dotArgon2</RepositoryUrl>
       <RepositoryType>git</RepositoryType>

@@ -2,7 +2,7 @@
 
 A minimal, fast, cross-platform Argon2 wrapper for .NET applications.
 
-This library provides access to native **Argon2id**, **Argon2i**, and **Argon2d** password hashing using optimized AVX2-enabled builds of the official reference implementation.
+This library provides access to native **Argon2id**, **Argon2i**, and **Argon2d** password hashing using the official reference implementation, with AVX2 builds for x64 and portable reference builds for ARM64.
 
 [![NuGet](https://img.shields.io/nuget/v/nebulae.dotArgon2.svg)](https://www.nuget.org/packages/nebulae.dotArgon2)
 
@@ -15,18 +15,20 @@ This library provides access to native **Argon2id**, **Argon2i**, and **Argon2d*
 - Full control over all parameters: memory cost, time cost, parallelism (nothing is hidden away, so you can follow OWASP recommendations)
 - Cross-platform support: **Windows**, **Linux**, **macOS**
 - Ships with native binaries: `.dll`, `.so`, `.dylib`
-- Built against the **SIMD-optimized** version of the Argon2 reference implementation
-- Requires **AVX2** instruction set (x86_64 only)
+- AVX2-optimized native code on x64; portable reference code on ARM64
 
 ---
 
 ## Requirements
 
 - .NET 8 or later
-- AVX2-capable CPU (required for the optimized native library)
-- Windows x64, Linux x64, or macOS x64/arm64
+- AVX2-capable CPU for x64 processes
+- Windows, Linux, or macOS with an x64 or ARM64 process
 
-> Note: On macOS, the library ships as a universal `dylib` supporting both Intel and Apple Silicon. The arm64 build uses the reference (non-AVX2) implementation.
+The NuGet package includes prebuilt native libraries for `win-x64`, `win-arm64`,
+`linux-x64`, `linux-arm64`, `osx-x64`, and `osx-arm64`. No native compilation is
+required to use the package. Library selection follows the process architecture,
+so an x64 process on an ARM64 machine uses the x64 library.
 
 ---
 

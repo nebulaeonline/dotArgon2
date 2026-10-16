@@ -23,7 +23,14 @@ namespace nebulae.dotArgon2
                 return IntPtr.Zero;
 
             var libName = GetPlatformLibraryName();
-            var assemblyDir = Path.GetDirectoryName(typeof(Argon2Library).Assembly.Location)!;
+            // NuGet/publish may place the selected RID asset beside the assembly.
+            // The runtime path below also supports project-reference builds.
+            if (NativeLibrary.TryLoad(Path.GetFileName(libName), assembly, searchPath, out var handle))
+                return handle;
+
+            var assemblyDir = Path.GetDirectoryName(assembly.Location);
+            if (string.IsNullOrEmpty(assemblyDir))
+                assemblyDir = AppContext.BaseDirectory;
             var fullPath = Path.Combine(assemblyDir, libName);
 
             if (!File.Exists(fullPath))
@@ -34,18 +41,22 @@ namespace nebulae.dotArgon2
 
         private static string GetPlatformLibraryName()
         {
+            var architecture = RuntimeInformation.ProcessArchitecture switch
+            {
+                Architecture.X64 => "x64",
+                Architecture.Arm64 => "arm64",
+                _ => throw new PlatformNotSupportedException($"Unsupported process architecture: {RuntimeInformation.ProcessArchitecture}")
+            };
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return Path.Combine("runtimes", "win-x64", "native", "argon2.dll");
+                return Path.Combine("runtimes", $"win-{architecture}", "native", "argon2.dll");
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return Path.Combine("runtimes", "linux-x64", "native", "libargon2.so");
+                return Path.Combine("runtimes", $"linux-{architecture}", "native", "libargon2.so");
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
-                    return Path.Combine("runtimes", "osx-arm64", "native", "libargon2.dylib");
-
-                return Path.Combine("runtimes", "osx-x64", "native", "libargon2.dylib");
+                return Path.Combine("runtimes", $"osx-{architecture}", "native", "libargon2.dylib");
             }
 
             throw new PlatformNotSupportedException("Unsupported platform");
