@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -167,33 +168,41 @@ namespace nebulae.dotArgon2
 
             var buffer = GC.AllocateUninitializedArray<byte>(hashLength);
 
-            int result = algorithm switch
+            try
             {
-                Argon2Algorithm.Argon2id => Argon2Interop.argon2id_hash_raw(
-                    timeCost, memCost, parallelism,
-                    password, (UIntPtr)password.Length,
-                    salt, (UIntPtr)salt.Length,
-                    buffer, (UIntPtr)hashLength),
-
-                Argon2Algorithm.Argon2i => Argon2Interop.argon2i_hash_raw(
-                    timeCost, memCost, parallelism,
-                    password, (UIntPtr)password.Length,
-                    salt, (UIntPtr)salt.Length,
-                    buffer, (UIntPtr)hashLength),
-
-                Argon2Algorithm.Argon2d => Argon2Interop.argon2d_hash_raw(
-                    timeCost, memCost, parallelism,
-                    password, (UIntPtr)password.Length,
-                    salt, (UIntPtr)salt.Length,
-                    buffer, (UIntPtr)hashLength),
-
-                _ => throw new ArgumentOutOfRangeException(nameof(algorithm), "Invalid Argon2 algorithm.")
-            };
-
-            if (result != 0)
-                throw new InvalidOperationException($"Argon2 hash failed with error code {result}: {Argon2Interop.GetErrorMessage(result)}");
-
-            return buffer;
+                int result = algorithm switch
+                {
+                    Argon2Algorithm.Argon2id => Argon2Interop.argon2id_hash_raw(
+                        timeCost, memCost, parallelism,
+                        password, (UIntPtr)password.Length,
+                        salt, (UIntPtr)salt.Length,
+                        buffer, (UIntPtr)hashLength),
+    
+                    Argon2Algorithm.Argon2i => Argon2Interop.argon2i_hash_raw(
+                        timeCost, memCost, parallelism,
+                        password, (UIntPtr)password.Length,
+                        salt, (UIntPtr)salt.Length,
+                        buffer, (UIntPtr)hashLength),
+    
+                    Argon2Algorithm.Argon2d => Argon2Interop.argon2d_hash_raw(
+                        timeCost, memCost, parallelism,
+                        password, (UIntPtr)password.Length,
+                        salt, (UIntPtr)salt.Length,
+                        buffer, (UIntPtr)hashLength),
+    
+                    _ => throw new ArgumentOutOfRangeException(nameof(algorithm), "Invalid Argon2 algorithm.")
+                };
+    
+                if (result != 0)
+                    throw new InvalidOperationException($"Argon2 hash failed with error code {result}: {Argon2Interop.GetErrorMessage(result)}");
+    
+                return buffer;
+            }
+            catch
+            {
+                CryptographicOperations.ZeroMemory(buffer);
+                throw;
+            }
         }
 
         /// <summary>
@@ -291,7 +300,14 @@ namespace nebulae.dotArgon2
             int hashLength = 32)
         {
             var hash = Argon2HashRaw(algorithm, timeCost, memCost, parallelism, password, salt, hashLength);
-            return Convert.ToHexString(hash); // Returns uppercase hex; .NET 5+
+            try
+            {
+                return Convert.ToHexString(hash);
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(hash);
+            }
         }
 
         /// <summary>
@@ -331,11 +347,18 @@ namespace nebulae.dotArgon2
                 ? stackalloc byte[hashLength]
                 : new byte[hashLength];
 
-            if (!TryArgon2HashRawFast(algorithm, timeCost, memCost, parallelism, password, salt, buffer, out int written, hashLength))
-                return false;
+            try
+            {
+                if (!TryArgon2HashRawFast(algorithm, timeCost, memCost, parallelism, password, salt, buffer, out int written, hashLength))
+                    return false;
 
-            result = Convert.ToHexString(buffer[..written]);
-            return true;
+                result = Convert.ToHexString(buffer[..written]);
+                return true;
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(buffer);
+            }
         }
 
         /// <summary>
@@ -359,7 +382,7 @@ namespace nebulae.dotArgon2
         /// invalid.</exception>
         /// <exception cref="InvalidOperationException">Thrown if the Argon2 hashing operation fails. The exception message will include the error code and
         /// description.</exception>
-        public static byte[] Argon2HashEncoded(
+        public static unsafe byte[] Argon2HashEncoded(
             Argon2Algorithm algorithm,
             uint timeCost,
             uint memCost,
@@ -376,38 +399,50 @@ namespace nebulae.dotArgon2
                 throw new ArgumentOutOfRangeException(nameof(hashLength), "Hash length must be greater than zero.");
 
             int estimatedSize = GetEncodedSizeEstimate(salt.Length, hashLength);
-            StringBuilder sb = new StringBuilder(estimatedSize);
-
-            int result = algorithm switch
+            byte[] buffer = new byte[estimatedSize];
+            try
             {
-                Argon2Algorithm.Argon2id => Argon2Interop.argon2id_hash_encoded(
-                    timeCost, memCost, parallelism,
-                    password, (UIntPtr)password.Length,
-                    salt, (UIntPtr)salt.Length,
-                    (UIntPtr)hashLength,
-                    sb, (UIntPtr)estimatedSize), // This line gets replaced in the fast-path (#6)
-
-                Argon2Algorithm.Argon2i => Argon2Interop.argon2i_hash_encoded(
-                    timeCost, memCost, parallelism,
-                    password, (UIntPtr)password.Length,
-                    salt, (UIntPtr)salt.Length,
-                    (UIntPtr)hashLength,
-                    sb, (UIntPtr)estimatedSize),
-
-                Argon2Algorithm.Argon2d => Argon2Interop.argon2d_hash_encoded(
-                    timeCost, memCost, parallelism,
-                    password, (UIntPtr)password.Length,
-                    salt, (UIntPtr)salt.Length,
-                    (UIntPtr)hashLength,
-                    sb, (UIntPtr)estimatedSize),
-
-                _ => throw new ArgumentOutOfRangeException(nameof(algorithm), "Invalid Argon2 algorithm.")
-            };
-
-            if (result != 0)
-                throw new InvalidOperationException($"Argon2 encoded hash failed with error code {result}: {Argon2Interop.GetErrorMessage(result)}");
-
-            return Encoding.UTF8.GetBytes(sb.ToString());
+                fixed (byte* pwd = password)
+                fixed (byte* slt = salt)
+                fixed (byte* dest = buffer)
+                {
+                    int result = algorithm switch
+                    {
+                        Argon2Algorithm.Argon2id => Argon2Interop.argon2id_hash_encoded_ptr(
+                            timeCost, memCost, parallelism,
+                            pwd, (UIntPtr)password.Length,
+                            slt, (UIntPtr)salt.Length,
+                            (UIntPtr)hashLength,
+                            dest, (UIntPtr)estimatedSize),
+        
+                        Argon2Algorithm.Argon2i => Argon2Interop.argon2i_hash_encoded_ptr(
+                            timeCost, memCost, parallelism,
+                            pwd, (UIntPtr)password.Length,
+                            slt, (UIntPtr)salt.Length,
+                            (UIntPtr)hashLength,
+                            dest, (UIntPtr)estimatedSize),
+        
+                        Argon2Algorithm.Argon2d => Argon2Interop.argon2d_hash_encoded_ptr(
+                            timeCost, memCost, parallelism,
+                            pwd, (UIntPtr)password.Length,
+                            slt, (UIntPtr)salt.Length,
+                            (UIntPtr)hashLength,
+                            dest, (UIntPtr)estimatedSize),
+        
+                        _ => throw new ArgumentOutOfRangeException(nameof(algorithm), "Invalid Argon2 algorithm.")
+                    };
+        
+                    if (result != 0)
+                        throw new InvalidOperationException($"Argon2 encoded hash failed with error code {result}: {Argon2Interop.GetErrorMessage(result)}");
+        
+                    int length = Array.IndexOf(buffer, (byte)0);
+                    return buffer.AsSpan(0, length >= 0 ? length : buffer.Length).ToArray();
+                }
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(buffer);
+            }
         }
 
         /// <summary>
@@ -431,7 +466,14 @@ namespace nebulae.dotArgon2
             int hashLength = 32)
         {
             var bytes = Argon2HashEncoded(algorithm, timeCost, memCost, parallelism, password, salt, hashLength);
-            return Encoding.UTF8.GetString(bytes);
+            try
+            {
+                return Encoding.UTF8.GetString(bytes);
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(bytes);
+            }
         }
 
         /// <summary>

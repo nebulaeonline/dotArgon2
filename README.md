@@ -14,7 +14,7 @@ This library provides access to native **Argon2id**, **Argon2i**, and **Argon2d*
 - Exposes both raw byte output and encoded string output
 - Full control over all parameters: memory cost, time cost, parallelism (nothing is hidden away, so you can follow OWASP recommendations)
 - Cross-platform support: **Windows**, **Linux**, **macOS**
-- Ships with native binaries: `.dll`, `.so`, `.dylib`
+- Ships with native binaries: `.dll`, `.so`, `.dylib` for both x64 and ARM64
 - AVX2-optimized native code on x64; portable reference code on ARM64
 
 ---
@@ -23,7 +23,7 @@ This library provides access to native **Argon2id**, **Argon2i**, and **Argon2d*
 
 - .NET 8 or later
 - AVX2-capable CPU for x64 processes
-- Windows, Linux, or macOS with an x64 or ARM64 process
+- Windows, Linux, or macOS with an x64 or ARM64 processor
 
 The NuGet package includes prebuilt native libraries for `win-x64`, `win-arm64`,
 `linux-x64`, `linux-arm64`, `osx-x64`, and `osx-arm64`. No native compilation is
@@ -41,9 +41,6 @@ For general usage, it is recommended to use the encoded string output for passwo
 ```csharp
 
 using nebulae.dotArgon2;
-
-// Ensure native library is loaded (no longer necessary in recent versions)
-// Argon2.Init();
 
 // Set inputs
 byte[] password = Encoding.UTF8.GetBytes("correct horse battery staple");
@@ -104,6 +101,15 @@ $ dotnet build
 
 MIT
 
-## Roadmap
+## Sensitive memory
 
-- Secure memory clearing for sensitive hash buffers
+Library-owned temporary hash buffers are cleared with
+`CryptographicOperations.ZeroMemory`, including when conversion or hashing fails.
+Encoded hashing uses a byte buffer that is cleared after copying the result.
+Returned arrays and caller-provided password, salt, and destination buffers remain
+caller-owned; clear sensitive byte buffers with `CryptographicOperations.ZeroMemory`
+when finished. Returned strings are immutable and cannot be reliably wiped; prefer
+byte arrays or span APIs when explicit clearing is required.
+
+The supplied native source clears Argon2 working memory and temporary verification
+buffers before freeing them.

@@ -27,5 +27,11 @@ int main(void) {
             return 1;
         }
     }
+    /* Exercise verification cleanup after partially decoding malformed input. */
+    if (argon2_verify("$argon2id$v=19$m=32,t=2,p=2$c29tZXNhbHQ$!", "password", 8,
+                      Argon2_id) == ARGON2_OK) {
+        fprintf(stderr, "Malformed hash accepted\n");
+        return 1;
+    }
     return 0;
 }

@@ -7,6 +7,28 @@ namespace dotArgon2Tests
     public class dotArgon2Tests
     {
         [Theory]
+        [InlineData(32)]
+        [InlineData(513)]
+        public void HexHelpers_MatchRawOutput_AndPreserveInputs(int length)
+        {
+            var password = Encoding.UTF8.GetBytes("password");
+            var salt = Encoding.UTF8.GetBytes("somesalt");
+            var expected = Convert.ToHexString(Argon2.Argon2HashRaw(
+                Argon2.Argon2Algorithm.Argon2id, 2, 32, 1, password, salt, length));
+
+            Assert.Equal(expected, Argon2.Argon2HashRawToHex(
+                Argon2.Argon2Algorithm.Argon2id, 2, 32, 1, password, salt, length));
+            Assert.True(Argon2.TryArgon2HashRawFastToHex(
+                Argon2.Argon2Algorithm.Argon2id, 2, 32, 1, password, salt, out var actual, length));
+            Assert.Equal(expected, actual);
+            Assert.Equal("password", Encoding.UTF8.GetString(password));
+            Assert.Equal("somesalt", Encoding.UTF8.GetString(salt));
+            Assert.False(Argon2.TryArgon2HashRawFastToHex(
+                Argon2.Argon2Algorithm.Argon2id, 0, 32, 1, password, salt, out actual, length));
+            Assert.Equal(string.Empty, actual);
+        }
+
+        [Theory]
         [InlineData(Argon2.Argon2Algorithm.Argon2id)]
         [InlineData(Argon2.Argon2Algorithm.Argon2i)]
         [InlineData(Argon2.Argon2Algorithm.Argon2d)]
