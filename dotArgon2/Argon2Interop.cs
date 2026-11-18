@@ -9,6 +9,10 @@ namespace nebulae.dotArgon2
 {
     internal static class Argon2Interop
     {
+        [DllImport("argon2", EntryPoint = "argon2_verify", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern unsafe int argon2_verify_utf8(
+            byte* encoded, byte* pwd, UIntPtr pwdlen, Argon2.Argon2Algorithm type);
+
         // 2id hash_raw
         [DllImport("argon2", CallingConvention = CallingConvention.Cdecl)]
         public static extern int argon2id_hash_raw(

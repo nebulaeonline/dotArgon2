@@ -129,6 +129,51 @@ namespace nebulae.dotArgon2
         }
 
         /// <summary>
+        /// Verifies a complete UTF-8 Argon2 encoded hash without creating a managed string.
+        /// </summary>
+        /// <remarks>
+        /// The encoded value is the full ASCII PHC record (including parameters, salt, and hash),
+        /// without a NUL terminator. Invalid input, an unsupported algorithm, or a mismatch returns false.
+        /// A temporary NUL-terminated copy is cleared in a finally block. Caller-owned inputs are
+        /// never modified; callers can clear their writable buffers with CryptographicOperations.ZeroMemory.
+        /// Native Argon2 still allocates working memory; this method is not allocation-free.
+        /// </remarks>
+        /// <param name="algorithm">The variant used to generate the encoded hash.</param>
+        /// <param name="encoded">The complete UTF-8 encoded hash, with no embedded or trailing NUL bytes.</param>
+        /// <param name="password">The password bytes. Must not be empty.</param>
+        /// <returns>True if the password matches; otherwise false.</returns>
+        public static unsafe bool VerifyEncoded(
+            Argon2Algorithm algorithm,
+            ReadOnlySpan<byte> encoded,
+            ReadOnlySpan<byte> password)
+        {
+            if (encoded.IsEmpty || password.IsEmpty || encoded.Length == int.MaxValue ||
+                algorithm is not (Argon2Algorithm.Argon2d or Argon2Algorithm.Argon2i or Argon2Algorithm.Argon2id))
+                return false;
+
+            // PHC records are ASCII. Reject NULs so native strlen cannot silently truncate input.
+            foreach (byte value in encoded)
+                if (value == 0 || value > 0x7f)
+                    return false;
+
+            Span<byte> terminated = encoded.Length < 512
+                ? stackalloc byte[encoded.Length + 1]
+                : new byte[encoded.Length + 1];
+            try
+            {
+                encoded.CopyTo(terminated);
+                terminated[encoded.Length] = 0;
+                fixed (byte* enc = terminated)
+                fixed (byte* pwd = password)
+                    return Argon2Interop.argon2_verify_utf8(enc, pwd, (UIntPtr)password.Length, algorithm) == 0;
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(terminated);
+            }
+        }
+
+        /// <summary>
         /// Computes a raw Argon2 hash using the specified algorithm, parameters, password, and salt.
         /// </summary>
         /// <remarks>Argon2 is a memory-hard key derivation function designed for secure password hashing.
